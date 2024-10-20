@@ -1,12 +1,11 @@
 #include <windows.h>
 #include <stdio.h>
 #include <time.h>
-#include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
 #include <mmsystem.h>
 
-#pragma comment(lib, "winmm.lib")
+#define ABSOLUTE_PATH_TO_WAV_FOLDER "C:\\Users\\molly\\git\\nubmoan\\moanswav"
 
 #define MAX_DEVICES 32
 #define COOLDOWN_PERIOD 1.0 // Cooldown period in seconds
@@ -75,7 +74,7 @@ void initializeDevices() {
             RID_DEVICE_INFO deviceInfo;
             UINT deviceInfoSize = sizeof(RID_DEVICE_INFO);
             deviceInfo.cbSize = sizeof(RID_DEVICE_INFO);
-            
+
             GetRawInputDeviceInfo(deviceList[i].hDevice, RIDI_DEVICEINFO, &deviceInfo, &deviceInfoSize);
 
             char deviceName[256];
@@ -84,7 +83,7 @@ void initializeDevices() {
 
             devices[deviceCount].device = deviceList[i].hDevice;
             strncpy(devices[deviceCount].name, deviceName, sizeof(devices[deviceCount].name));
-            
+
             devices[deviceCount].isTrackpad = (strstr(deviceName, "TouchPad") != NULL);
             devices[deviceCount].isTrackpoint = (strstr(deviceName, "TrackPoint") != NULL);
 
@@ -107,7 +106,7 @@ const char* getDeviceType(HANDLE device) {
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    static const char* wavFolderPath = "C:\\Users\\molly\\git\\nubmoan\\moanswav"; // Change this to your WAV folder path
+    static const char* wavFolderPath = ABSOLUTE_PATH_TO_WAV_FOLDER;
 
     switch (message) {
         case WM_INPUT: {
@@ -124,12 +123,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 if (raw->header.dwType == RIM_TYPEMOUSE) {
     HANDLE device = raw->header.hDevice;
     const char* deviceType = getDeviceType(device);
-    
+
     // Check if there's actual mouse movement (non-zero dx or dy)
     if (raw->data.mouse.lLastX != 0 || raw->data.mouse.lLastY != 0) {
         printf("Mouse moved: dx=%ld, dy=%ld, Device: %s\n",
-               raw->data.mouse.lLastX, raw->data.mouse.lLastY, deviceType);
-        
+                raw->data.mouse.lLastX, raw->data.mouse.lLastY, deviceType);
+
         if (strcmp(deviceType, "Mouse") == 0) {
             // Track cumulative absolute movement for 6 events
             cumulativeMovement += abs(raw->data.mouse.lLastX) + abs(raw->data.mouse.lLastY);

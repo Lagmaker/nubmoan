@@ -1,0 +1,1 @@
+clang mouse_tracker.c -lUser32.lib -lWinmm.lib -o mouse_tracker.exe
